@@ -16,7 +16,11 @@ class SupabaseService {
     await dotenv.load(fileName: ".env");
 
     final supabaseUrl = dotenv.env['VITE_SUPABASE_URL'] ?? '';
-    final supabaseAnonKey = dotenv.env['VITE_SUPABASE_SUPABASE_ANON_KEY'] ?? '';
+    final supabaseAnonKey = dotenv.env['VITE_SUPABASE_ANON_KEY'] ?? '';
+
+    if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+      throw Exception('Supabase credentials not found in .env file');
+    }
 
     await Supabase.initialize(
       url: supabaseUrl,
@@ -47,13 +51,17 @@ class SupabaseService {
     final response = await _client!.auth.signUp(
       email: email,
       password: password,
+      data: {
+        'full_name': fullName,
+        'role': role,
+        'phone': phone,
+      },
     );
 
     if (response.user != null) {
       await _client!.from('users').insert({
         'id': response.user!.id,
         'email': email,
-        'password_hash': '',
         'role': role,
         'full_name': fullName,
         'phone': phone,
